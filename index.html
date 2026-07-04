@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EA Gold Scalp Pro — Giao dịch Vàng tự động XAUUSD</title>
+<meta name="description" content="EA Gold Scalp Pro — hệ thống giao dịch Vàng (XAUUSD) tự động. Cộng đồng Telegram, Zalo, MQL5 và mở tài khoản GlobalPrime.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Manrope:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void:#050508;
+    --char:#0d0b14;
+    --gold-hi:#f6d778;
+    --gold:#d4a53d;
+    --gold-lo:#8a5f14;
+    --champagne:#efe3c2;
+    --muted:#9a8f74;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    background:var(--void);
+    color:var(--champagne);
+    font-family:'Manrope',sans-serif;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    overflow-x:hidden;
+  }
+  /* ---------- starfield & atmosphere ---------- */
+  .sky{position:fixed;inset:0;pointer-events:none;z-index:0}
+  .sky::before{
+    content:"";position:absolute;inset:0;
+    background:
+      radial-gradient(ellipse 60% 40% at 50% 18%, rgba(212,165,61,.10), transparent 70%),
+      radial-gradient(ellipse 70% 50% at 20% 70%, rgba(43,38,80,.35), transparent 70%),
+      radial-gradient(ellipse 70% 50% at 85% 45%, rgba(30,26,58,.30), transparent 70%);
+  }
+  .star{position:absolute;border-radius:50%;background:#e9d9a8;opacity:.55}
+  .star.b{background:#cfe0f5}
+
+  /* ---------- page column ---------- */
+  .page{
+    position:relative;z-index:1;
+    width:100%;max-width:430px;
+    padding:56px 22px 40px;
+    text-align:center;
+  }
+
+  /* ---------- eclipse brand mark ---------- */
+  .mark{
+    width:150px;height:150px;margin:0 auto 26px;position:relative;
+    animation:rise .9s ease both;
+  }
+  .mark .corona{
+    position:absolute;inset:0;border-radius:50%;
+    box-shadow:0 0 34px 6px rgba(246,215,120,.38), 0 0 90px 18px rgba(212,165,61,.20);
+    animation:breathe 5.5s ease-in-out infinite;
+  }
+  .mark .disc{
+    position:absolute;inset:0;border-radius:50%;
+    background:radial-gradient(circle at 50% 40%, #16121f 0%, #0a0810 70%);
+    border:2px solid var(--gold-hi);
+  }
+  .mark .disc::after{
+    content:"";position:absolute;inset:6px;border-radius:50%;
+    border:1px dashed rgba(212,165,61,.45);
+  }
+  .mark .ea{
+    position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    font-family:'Cinzel',serif;font-weight:700;font-size:44px;letter-spacing:6px;
+    padding-left:6px; /* optical centering for letterspacing */
+    background:linear-gradient(180deg,#fdf3c8 0%,#f0cd66 45%,#cf9c2e 80%,#96660f 100%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    text-shadow:0 0 22px rgba(246,215,120,.25);
+  }
+
+  /* ---------- identity ---------- */
+  h1{
+    font-family:'Cinzel',serif;font-weight:700;
+    font-size:clamp(26px,7vw,32px);letter-spacing:.14em;
+    background:linear-gradient(180deg,#fdf3c8,#f0cd66 45%,#cf9c2e 80%,#96660f);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    animation:rise .9s .08s ease both;
+  }
+  .sub{
+    margin-top:10px;font-size:14px;font-weight:500;color:var(--muted);
+    letter-spacing:.02em;line-height:1.65;
+    animation:rise .9s .16s ease both;
+  }
+  .rule{
+    display:flex;align-items:center;gap:12px;margin:26px 0 30px;
+    animation:rise .9s .22s ease both;
+  }
+  .rule::before,.rule::after{content:"";height:1px;flex:1;background:linear-gradient(90deg,transparent,rgba(212,165,61,.55))}
+  .rule::after{background:linear-gradient(90deg,rgba(212,165,61,.55),transparent)}
+  .rule .dia{width:9px;height:9px;background:var(--gold-hi);transform:rotate(45deg);box-shadow:0 0 10px rgba(246,215,120,.6)}
+
+  /* ---------- links ---------- */
+  .links{display:flex;flex-direction:column;gap:14px;list-style:none}
+  .links li{animation:rise .8s ease both}
+  .links li:nth-child(1){animation-delay:.28s}
+  .links li:nth-child(2){animation-delay:.36s}
+  .links li:nth-child(3){animation-delay:.44s}
+  .links li:nth-child(4){animation-delay:.52s}
+  .btn{
+    position:relative;display:flex;align-items:center;gap:14px;
+    padding:16px 18px;text-align:left;text-decoration:none;
+    background:linear-gradient(180deg,rgba(22,18,31,.9),rgba(10,8,16,.9));
+    border:1px solid rgba(212,165,61,.5);
+    color:var(--champagne);
+    transition:border-color .25s, box-shadow .25s, transform .25s;
+  }
+  /* astrolabe corner ticks — the signature */
+  .btn::before,.btn::after,
+  .btn .tick::before,.btn .tick::after{
+    content:"";position:absolute;width:10px;height:10px;
+    border-color:var(--gold-hi);border-style:solid;
+  }
+  .btn::before{top:-1px;left:-1px;border-width:2px 0 0 2px}
+  .btn::after{top:-1px;right:-1px;border-width:2px 2px 0 0}
+  .btn .tick::before{bottom:-1px;left:-1px;border-width:0 0 2px 2px}
+  .btn .tick::after{bottom:-1px;right:-1px;border-width:0 2px 2px 0}
+  .btn:hover,.btn:focus-visible{
+    border-color:var(--gold-hi);
+    box-shadow:0 0 22px rgba(212,165,61,.25), inset 0 0 18px rgba(212,165,61,.06);
+    transform:translateY(-2px);
+  }
+  .btn:focus-visible{outline:2px solid var(--gold-hi);outline-offset:3px}
+  .btn .ic{
+    flex:0 0 40px;height:40px;display:flex;align-items:center;justify-content:center;
+    border:1px solid rgba(212,165,61,.45);
+  }
+  .btn .ic svg{width:20px;height:20px;fill:none;stroke:var(--gold-hi);stroke-width:1.6}
+  .btn .tx b{display:block;font-size:15px;font-weight:700;letter-spacing:.03em;color:#f4e9c8}
+  .btn .tx span{display:block;margin-top:3px;font-size:12.5px;color:var(--muted);line-height:1.4}
+
+  /* ---------- footer ---------- */
+  .note{
+    margin-top:34px;font-size:11.5px;line-height:1.7;color:#6f6752;
+    animation:rise .9s .6s ease both;
+  }
+  .note b{color:#8d8266;font-weight:700}
+
+  @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  @keyframes breathe{0%,100%{opacity:.85}50%{opacity:1}}
+  @media (prefers-reduced-motion:reduce){
+    *{animation:none!important;transition:none!important}
+  }
+</style>
+</head>
+<body>
+<div class="sky" id="sky" aria-hidden="true"></div>
+
+<main class="page">
+  <!-- Brand mark: golden eclipse -->
+  <div class="mark" aria-hidden="true">
+    <div class="corona"></div>
+    <div class="disc"></div>
+    <div class="ea">EA</div>
+  </div>
+
+  <h1>GOLD SCALP PRO</h1>
+  <p class="sub">Hệ thống giao dịch Vàng (XAUUSD) tự động.<br>Kết quả minh bạch — cập nhật mỗi ngày.</p>
+
+  <div class="rule" aria-hidden="true"><span class="dia"></span></div>
+
+  <!--
+    ⚠️ THAY 4 LINK DƯỚI ĐÂY (href="...") BẰNG LINK THẬT CỦA TÚ:
+    1. Link nhóm Telegram
+    2. Link Zalo (nhóm hoặc zalo.me/SỐ_ĐIỆN_THOẠI)
+    3. Link profile / sản phẩm trên MQL5
+    4. Link mở tài khoản GlobalPrime kèm mã IB 114009
+  -->
+  <ul class="links">
+    <li>
+      <a class="btn" href="https://t.me/THAY_LINK_TELEGRAM">
+        <span class="tick"></span>
+        <span class="ic"><svg viewBox="0 0 24 24"><path d="M21 4 3 11l6 2 2 6 3-4 5 3 2-14z"/></svg></span>
+        <span class="tx"><b>Cộng đồng Telegram</b><span>Tín hiệu, kết quả EA và thảo luận mỗi ngày</span></span>
+      </a>
+    </li>
+    <li>
+      <a class="btn" href="https://zalo.me/THAY_LINK_ZALO">
+        <span class="tick"></span>
+        <span class="ic"><svg viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4V5z"/></svg></span>
+        <span class="tx"><b>Zalo hỗ trợ</b><span>Liên hệ trực tiếp — hỗ trợ cài đặt EA</span></span>
+      </a>
+    </li>
+    <li>
+      <a class="btn" href="https://www.mql5.com/THAY_LINK_MQL5">
+        <span class="tick"></span>
+        <span class="ic"><svg viewBox="0 0 24 24"><path d="M4 18 10 9l4 5 6-9"/><path d="M3 21h18"/></svg></span>
+        <span class="tx"><b>Vietnam Gold Scalp trên MQL5</b><span>Xem tín hiệu live và lịch sử giao dịch công khai</span></span>
+      </a>
+    </li>
+    <li>
+      <a class="btn" href="https://THAY_LINK_GLOBALPRIME">
+        <span class="tick"></span>
+        <span class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v8M9 10.5h6M9 13.5h6"/></svg></span>
+        <span class="tx"><b>Mở tài khoản GlobalPrime</b><span>Đăng ký theo mã IB 114009 để nhận EA</span></span>
+      </a>
+    </li>
+  </ul>
+
+  <p class="note">
+    <b>Lưu ý rủi ro:</b> Giao dịch ngoại hối và vàng có mức độ rủi ro cao, có thể mất một phần
+    hoặc toàn bộ vốn. Kết quả trong quá khứ không đảm bảo kết quả tương lai.
+    Nội dung chỉ mang tính chia sẻ, không phải lời khuyên đầu tư.
+  </p>
+</main>
+
+<script>
+  // Starfield — nhẹ, cố định, không gây phân tâm
+  (function(){
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var sky = document.getElementById('sky');
+    for (var i = 0; i < 42; i++){
+      var s = document.createElement('span');
+      s.className = 'star' + (Math.random() < .45 ? ' b' : '');
+      var size = (Math.random()*1.8 + .6).toFixed(1);
+      s.style.width = size + 'px';
+      s.style.height = size + 'px';
+      s.style.left = (Math.random()*100).toFixed(1) + '%';
+      s.style.top  = (Math.random()*100).toFixed(1) + '%';
+      s.style.opacity = (Math.random()*.5 + .2).toFixed(2);
+      sky.appendChild(s);
+    }
+  })();
+</script>
+</body>
+</html>
